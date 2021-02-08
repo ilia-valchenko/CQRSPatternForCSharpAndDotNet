@@ -43,3 +43,8 @@ public class PayOrderCommandHandler : ICommandHandler<PayOrderCommand>
     }
 }
 ```
+
+## What are benefits of all these modifications if we don't have a separate database and don't have a separate read-model?
+Architecture benefits:
+* test1
+* test2
