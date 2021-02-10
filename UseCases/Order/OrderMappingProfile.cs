@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 
-namespace WebApi.Order
+namespace UseCases.Order
 {
     public class OrderMappingProfile : Profile
     {

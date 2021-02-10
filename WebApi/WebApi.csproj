@@ -6,11 +6,13 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="10.1.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DataAccess.MsSql\DataAccess.MsSql.csproj" />
     <ProjectReference Include="..\Infrastructure.Interfaces\Infrastructure.Interfaces.csproj" />
+    <ProjectReference Include="..\UseCases\UseCases.csproj" />
   </ItemGroup>
 
 

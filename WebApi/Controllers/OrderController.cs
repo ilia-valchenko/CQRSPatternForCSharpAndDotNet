@@ -1,9 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using AutoMapper;
-using Infrastructure.Interfaces;
+﻿using System.Threading.Tasks;
+using CqrsFramework;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Order;
+using UseCases.Order;
+using UseCases.Order.UpdateOrder;
 
 namespace WebApi.Controllers
 {
@@ -11,51 +10,35 @@ namespace WebApi.Controllers
     [Route("[controller]")]
     public class OrderController : ControllerBase
     {
-        private readonly IDbContext dbContext;
-        private readonly ICurrentUserService currentUserService;
-        private readonly IMapper mapper;
+        private readonly IRequestHandler<int, OrderDto> getOrderHandler;
+        private readonly IRequestHandler<UpdateOrderCommand, int> updateOrderHandler;
 
-        public OrderController(IDbContext dbContext, ICurrentUserService currentUserService, IMapper mapper)
+        // We don't need to pass all of the handlers in the constructor as we
+        // can have a lot of them. We can use ASP .NET Core injection method.
+        public OrderController(
+            IRequestHandler<int, OrderDto> getOrderHandler,
+            IRequestHandler<UpdateOrderCommand, int> updateOrderHandler)
         {
-            this.dbContext = dbContext;
-            this.currentUserService = currentUserService;
-            this.mapper = mapper;
+            this.getOrderHandler = getOrderHandler;
+            this.updateOrderHandler = updateOrderHandler;
         }
 
         [HttpGet("{id}")]
         public async Task<OrderDto> Get(int id)
         {
-            var order = await this.dbContext.Orders.FindAsync(id);
-
-            if (order == null)
-            {
-                throw new Exception("Not found");
-            }
-
-            if (order.UserEmail != this.currentUserService.Email)
-            {
-                throw new Exception("Forbidden");
-            }
-
-            return this.mapper.Map<OrderDto>(order);
+            return await this.getOrderHandler.HandleAsync(id);
         }
 
-        public async Task Update(int id, [FromBody]OrderDto dto)
+        [HttpPost("{id}")]
+        public async Task Update(int id, [FromBody]OrderDto dto, [FromServices] IRequestHandler<UpdateOrderCommand, int> updateOrderCommandHandler)
         {
-            var order = await this.dbContext.Orders.FindAsync(id);
-
-            if (order == null)
+            var command = new UpdateOrderCommand
             {
-                throw new Exception("Not found");
-            }
+                Id = id,
+                Dto = dto
+            };
 
-            if (order.UserEmail != this.currentUserService.Email)
-            {
-                throw new Exception("Forbidden");
-            }
-
-            this.mapper.Map(dto, order);
-            await this.dbContext.SaveChangesAsync();
+            await updateOrderCommandHandler.HandleAsync(command);
         }
     }
 }
