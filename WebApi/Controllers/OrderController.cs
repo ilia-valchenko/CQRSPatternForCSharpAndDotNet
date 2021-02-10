@@ -11,13 +11,13 @@ namespace WebApi.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IRequestHandler<int, OrderDto> getOrderHandler;
-        private readonly IRequestHandler<UpdateOrderCommand, int> updateOrderHandler;
+        private readonly IRequestHandler<UpdateOrderCommand, Unit> updateOrderHandler;
 
         // We don't need to pass all of the handlers in the constructor as we
         // can have a lot of them. We can use ASP .NET Core injection method.
         public OrderController(
             IRequestHandler<int, OrderDto> getOrderHandler,
-            IRequestHandler<UpdateOrderCommand, int> updateOrderHandler)
+            IRequestHandler<UpdateOrderCommand, Unit> updateOrderHandler)
         {
             this.getOrderHandler = getOrderHandler;
             this.updateOrderHandler = updateOrderHandler;

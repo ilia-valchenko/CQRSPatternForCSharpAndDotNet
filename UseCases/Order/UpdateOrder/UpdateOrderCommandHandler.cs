@@ -6,7 +6,7 @@ using Infrastructure.Interfaces;
 
 namespace UseCases.Order.UpdateOrder
 {
-    public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, int>
+    public class UpdateOrderCommandHandler : VoidRequestHandler<UpdateOrderCommand>
     {
         private readonly IDbContext dbContext;
         private readonly ICurrentUserService currentUserService;
@@ -19,7 +19,7 @@ namespace UseCases.Order.UpdateOrder
             this.mapper = mapper;
         }
 
-        public async Task<int> HandleAsync(UpdateOrderCommand request)
+        protected override async Task HandleAsync(UpdateOrderCommand request)
         {
             if (request == null)
             {
@@ -39,7 +39,7 @@ namespace UseCases.Order.UpdateOrder
             }
 
             this.mapper.Map(request.Dto, order);
-            return await this.dbContext.SaveChangesAsync();
+            await this.dbContext.SaveChangesAsync();
         }
     }
 }
