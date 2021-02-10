@@ -48,3 +48,34 @@ public class PayOrderCommandHandler : ICommandHandler<PayOrderCommand>
 Architecture benefits:
 * test1
 * test2
+* test3
+
+This is how the controller looks like in the beginning. A set of handlers was injected in the controller's constructor.
+
+```csharp
+public OrderController(
+	IRequestHandler<int, OrderDto> getOrderHandler,
+	IRequestHandler<UpdateOrderCommand, Unit> updateOrderHandler)
+{
+    this.getOrderHandler = getOrderHandler;
+    this.updateOrderHandler = updateOrderHandler;
+}
+
+[HttpGet("{id}")]
+public async Task<OrderDto> Get(int id)
+{
+    return await this.getOrderHandler.HandleAsync(id);
+}
+
+[HttpPost("{id}")]
+public async Task Update(int id, [FromBody]OrderDto dto, [FromServices] IRequestHandler<UpdateOrderCommand, int> updateOrderCommandHandler)
+{
+    var command = new UpdateOrderCommand
+    {
+        Id = id,
+        Dto = dto
+    };
+
+    await updateOrderCommandHandler.HandleAsync(command);
+}
+```
