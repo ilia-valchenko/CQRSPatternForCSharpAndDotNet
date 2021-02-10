@@ -1,7 +1,9 @@
-﻿namespace UseCases.Order.UpdateOrder
+﻿using CqrsFramework;
+
+namespace UseCases.Order.UpdateOrder
 {
     // The DTO below will be transfered between two layers.
-    public class UpdateOrderCommand
+    public class UpdateOrderCommand : IVoidRequest
     {
         public int Id { get; set; }
 

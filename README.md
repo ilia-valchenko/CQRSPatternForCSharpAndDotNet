@@ -53,6 +53,9 @@ Architecture benefits:
 This is how the controller looks like in the beginning. A set of handlers was injected in the controller's constructor.
 
 ```csharp
+// We don't need to pass all of the handlers in the constructor as we
+// can have a lot of them. We can use ASP .NET Core injection method.
+// See the second action as an example.
 public OrderController(
 	IRequestHandler<int, OrderDto> getOrderHandler,
 	IRequestHandler<UpdateOrderCommand, Unit> updateOrderHandler)

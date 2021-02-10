@@ -2,6 +2,7 @@
 using CqrsFramework;
 using Microsoft.AspNetCore.Mvc;
 using UseCases.Order;
+using UseCases.Order.GetOrder;
 using UseCases.Order.UpdateOrder;
 
 namespace WebApi.Controllers
@@ -10,23 +11,17 @@ namespace WebApi.Controllers
     [Route("[controller]")]
     public class OrderController : ControllerBase
     {
-        private readonly IRequestHandler<int, OrderDto> getOrderHandler;
-        private readonly IRequestHandler<UpdateOrderCommand, Unit> updateOrderHandler;
+        private readonly IHandlerDispatcher handlerDispatcher;
 
-        // We don't need to pass all of the handlers in the constructor as we
-        // can have a lot of them. We can use ASP .NET Core injection method.
-        public OrderController(
-            IRequestHandler<int, OrderDto> getOrderHandler,
-            IRequestHandler<UpdateOrderCommand, Unit> updateOrderHandler)
+        public OrderController(IHandlerDispatcher handlerDispatcher)
         {
-            this.getOrderHandler = getOrderHandler;
-            this.updateOrderHandler = updateOrderHandler;
+            this.handlerDispatcher = handlerDispatcher;
         }
 
         [HttpGet("{id}")]
         public async Task<OrderDto> Get(int id)
         {
-            return await this.getOrderHandler.HandleAsync(id);
+            return await this.handlerDispatcher.SendAsync<OrderDto>(new GetOrderRequest { Id = id });
         }
 
         [HttpPost("{id}")]
@@ -38,7 +33,7 @@ namespace WebApi.Controllers
                 Dto = dto
             };
 
-            await updateOrderCommandHandler.HandleAsync(command);
+            await this.handlerDispatcher.SendAsync<Unit>(command);
         }
     }
 }

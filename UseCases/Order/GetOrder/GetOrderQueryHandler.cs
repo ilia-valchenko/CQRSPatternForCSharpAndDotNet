@@ -6,7 +6,7 @@ using Infrastructure.Interfaces;
 
 namespace UseCases.Order.GetOrder
 {
-    public class GetOrderQueryHandler : IRequestHandler<int, OrderDto>
+    public class GetOrderQueryHandler : IRequestHandler<GetOrderRequest, OrderDto>
     {
         private readonly IDbContext dbContext;
         private readonly ICurrentUserService currentUserService;
@@ -19,9 +19,14 @@ namespace UseCases.Order.GetOrder
             this.mapper = mapper;
         }
 
-        public async Task<OrderDto> HandleAsync(int id)
+        public async Task<OrderDto> HandleAsync(GetOrderRequest request)
         {
-            var order = await this.dbContext.Orders.FindAsync(id);
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            var order = await this.dbContext.Orders.FindAsync(request.Id);
 
             if (order == null)
             {
