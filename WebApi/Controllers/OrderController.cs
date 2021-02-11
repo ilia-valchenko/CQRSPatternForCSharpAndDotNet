@@ -21,7 +21,7 @@ namespace WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<OrderDto> Get(int id)
         {
-            return await this.handlerDispatcher.SendAsync<OrderDto>(new GetOrderRequest { Id = id });
+            return await this.handlerDispatcher.SendAsync<OrderDto>(new GetOrderQuery { Id = id });
         }
 
         [HttpPost("{id}")]

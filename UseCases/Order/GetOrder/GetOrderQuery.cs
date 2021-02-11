@@ -2,7 +2,7 @@
 
 namespace UseCases.Order.GetOrder
 {
-    public class GetOrderRequest : IRequest<OrderDto>
+    public class GetOrderQuery : IRequest<OrderDto>
     {
         public int Id { get; set; }
     }
