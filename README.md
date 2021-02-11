@@ -104,3 +104,5 @@ public async Task<OrderDto> Get(int id)
     return await this.handlerDispatcher.SendAsync<OrderDto>(new GetOrderQuery { Id = id });
 }
 ```
+
+Now we will add a middleware. We will create a pipeline which will handle our requests.

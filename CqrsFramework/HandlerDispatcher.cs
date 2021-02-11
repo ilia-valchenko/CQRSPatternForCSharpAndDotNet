@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CqrsFramework
@@ -33,7 +34,14 @@ namespace CqrsFramework
         protected Task<TResponse> HandleAsync<TRequest, TResponse>(TRequest request)
         {
             var handler = this.serviceProvider.GetRequiredService<IRequestHandler<TRequest, TResponse>>();
-            return handler.HandleAsync(request);
+            var middlewares = this.serviceProvider.GetServices<IMiddleware<TRequest, TResponse>>();
+            HandlerDelegate<TResponse> handlerDelegate = () => handler.HandleAsync(request);
+
+            // Now we want to call all middlewares.
+            // We transform the collection to a single delefate.
+            var resultDelegate = middlewares.Aggregate(handlerDelegate, (next, middleware) => () => middleware.HandleAsync(request, next));
+
+            return resultDelegate();
         }
     }
 }
