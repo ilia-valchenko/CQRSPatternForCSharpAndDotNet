@@ -82,3 +82,25 @@ public async Task Update(int id, [FromBody]OrderDto dto, [FromServices] IRequest
     await updateOrderCommandHandler.HandleAsync(command);
 }
 ```
+
+Let's refactor our code by using `IHandlerDispatcher` and `IRequest<TResponse>`.
+As you can see in the code below we don't create handlers manually. Now we have
+the dispatcher which is responsible for it.
+
+```csharp
+public class GetOrderQuery : IRequest<OrderDto>
+{
+    public int Id { get; set; }
+}
+
+public OrderController(IHandlerDispatcher handlerDispatcher)
+{
+    this.handlerDispatcher = handlerDispatcher;
+}
+
+[HttpGet("{id}")]
+public async Task<OrderDto> Get(int id)
+{
+    return await this.handlerDispatcher.SendAsync<OrderDto>(new GetOrderQuery { Id = id });
+}
+```
