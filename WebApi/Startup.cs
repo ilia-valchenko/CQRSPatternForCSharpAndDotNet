@@ -39,7 +39,12 @@ namespace WebApi
             services.AddScoped<IRequestHandler<GetOrderQuery, OrderDto>, GetOrderQueryHandler>();
             services.AddScoped<IRequestHandler<UpdateOrderCommand, Unit>, UpdateOrderCommandHandler>();
             services.AddScoped<IHandlerDispatcher, HandlerDispatcher>();
+
+            // The Autofac will call them in a reverse order. The TestMiddleware
+            // will be called in the beginning, but we can change the order in
+            // the HandlerDispatcher.
             services.AddScoped(typeof(IMiddleware<,>), typeof(CheckOrderMiddleware<,>));
+            services.AddScoped(typeof(IMiddleware<,>), typeof(TestMiddleware<,>));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
