@@ -1,5 +1,7 @@
 # CQRS pattern for C# and .NET
 
+It's an implementation from scratch. You can use an existing NuGet package: [MediatR][https://www.nuget.org/packages/MediatR/].
+
 ![alt text](https://habrastorage.org/getpro/habr/post_images/d4d/f93/26b/d4df9326bc3d3794857462bae9abe30e.svg)
 
 Client sends a command to a back-end. We have two separate storages for reading and writing. They can be non-relational databases. These storages sync from time to time. But I have never seen such ideal projects. Most often I see projects which use only one database. They usualy use Command, BLL and ORM for writing operations.
@@ -46,9 +48,11 @@ public class PayOrderCommandHandler : ICommandHandler<PayOrderCommand>
 
 ## What are benefits of all these modifications if we don't have a separate database and don't have a separate read-model?
 Architecture benefits:
-* test1
-* test2
-* test3
+* It's a realization of the cross-cutting concerns.
+* We incapsulate our use cases. We have a separate handler for each use case. It allows us to avoid fat services which contain lots of use cases. It makes the application much easier to maintain.
+* It allows to reduce the number of dependencies. Each handler contains only those dependencies which are really need.
+* Allows us to reduce a code duplication.
+* Use cases are independent. It's called low coupling.
 
 This is how the controller looks like in the beginning. A set of handlers was injected in the controller's constructor.
 
