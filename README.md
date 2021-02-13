@@ -215,3 +215,5 @@ public class OrderController : ControllerBase
     }
 }
 ```
+
+Summary: We used 10 infrastructure elements to implement CQRS pattern (`CqrsFramework` project consists of 10 classes).
