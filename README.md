@@ -106,3 +106,112 @@ public async Task<OrderDto> Get(int id)
 ```
 
 Now we will add a middleware. We will create a pipeline which will handle our requests.
+
+```csharp
+public delegate Task<TResponse> HandlerDelegate<TResponse>();
+
+public interface IMiddleware<TRequest, TResponse>
+{
+    // We implemented it in a different way. We don't put the next part of
+    // the pipeline in the constructor. We pass the second argument to the
+    // HandleAsync method.
+    Task<TResponse> HandleAsync(TRequest request, HandlerDelegate<TResponse> next);
+}
+
+public interface ICheckOrderRequest
+{
+    public int Id { get; set; }
+}
+
+public class CheckOrderMiddleware<TRequest, TResponse> : IMiddleware<TRequest, TResponse>
+    where TRequest : ICheckOrderRequest
+{
+    private readonly IDbContext dbContext;
+    private readonly ICurrentUserService currentUserService;
+
+    public CheckOrderMiddleware(IDbContext dbContext, ICurrentUserService currentUserService)
+    {
+        this.dbContext = dbContext;
+        this.currentUserService = currentUserService;
+    }
+
+    public async Task<TResponse> HandleAsync(TRequest request, HandlerDelegate<TResponse> next)
+    {
+        if (request == null)
+        {
+            throw new ArgumentNullException(nameof(request));
+        }
+
+        var order = await this.dbContext.Orders.FindAsync(request.Id);
+
+        if (order == null)
+        {
+            throw new Exception("Not found");
+        }
+
+        if (order.UserEmail != this.currentUserService.Email)
+        {
+            throw new Exception("Forbidden");
+        }
+
+        return await next();
+    }
+}
+
+public class HandlerDispatcher : IHandlerDispatcher
+{
+    private readonly IServiceProvider serviceProvider;
+
+    public HandlerDispatcher(IServiceProvider serviceProvider)
+    {
+        this.serviceProvider = serviceProvider;
+    }
+
+    public Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request)
+    {
+        if (request == null)
+        {
+            throw new ArgumentNullException(nameof(request));
+        }
+
+        var method = this.GetType()
+            .GetMethod("HandleAsync", BindingFlags.NonPublic | BindingFlags.Instance)
+            .MakeGenericMethod(request.GetType(), typeof(TResponse));
+
+        var result = method.Invoke(this, new[] { request });
+
+        return (Task<TResponse>) result;
+    }
+
+    protected Task<TResponse> HandleAsync<TRequest, TResponse>(TRequest request)
+    {
+        var handler = this.serviceProvider.GetRequiredService<IRequestHandler<TRequest, TResponse>>();
+        var middlewares = this.serviceProvider.GetServices<IMiddleware<TRequest, TResponse>>();
+        HandlerDelegate<TResponse> handlerDelegate = () => handler.HandleAsync(request);
+
+        // Now we want to call all middlewares.
+        // We transform the collection to a single delefate.
+        var resultDelegate = middlewares.Aggregate(handlerDelegate, (next, middleware) => () => middleware.HandleAsync(request, next));
+
+        return resultDelegate();
+    }
+}
+
+[ApiController]
+[Route("[controller]")]
+public class OrderController : ControllerBase
+{
+    private readonly IHandlerDispatcher handlerDispatcher;
+
+    public OrderController(IHandlerDispatcher handlerDispatcher)
+    {
+        this.handlerDispatcher = handlerDispatcher;
+    }
+
+    [HttpGet("{id}")]
+    public async Task<OrderDto> Get(int id)
+    {
+        return await this.handlerDispatcher.SendAsync<OrderDto>(new GetOrderQuery { Id = id });
+    }
+}
+```
